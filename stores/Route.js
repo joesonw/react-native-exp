@@ -13,9 +13,13 @@ function getRoute(action) {
         if (r.name == action.name) {
             const X = r.component;
             const props = action.props;
+            let component;
+            if (!r.shortcut) {
+                component = <X {...props}/>;
+            }
             return Map({
                 title: r.title,
-                component: <X {...props}/>,
+                component,
                 leftTab: r.leftTab,
                 rightTab: r.rightTab,
                 shortcut: !!r.shortcut,

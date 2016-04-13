@@ -25,8 +25,27 @@ const Dash = (props) => {
 }
 
 export default class extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            user: User.getState()
+        } 
+    }
+
+    componentDidMount() {
+        this._disposeUser = User.subscribe(() => {
+            this.setState({
+                user: User.getState()
+            })
+        });
+    }
+
+    componentWillUnmount() {
+        this._disposeUser();
+    }
+
     render() {
-        const user = User.getState();
+        const user = this.state.user;
         return (
 
             <View style={{

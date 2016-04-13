@@ -5,7 +5,8 @@ import React, {
     Component,
     TouchableHighlight,
     Image,
-    ScrollView
+    ListView,
+    RecyclerViewBackedScrollView
 } from 'react-native';
 import _ from 'lodash';
 import Contact from '../stores/Contact';
@@ -39,8 +40,11 @@ const Divider = () => {
 export default class extends Component {
     constructor(props) {
         super(props);
+        const ds = new ListView.DataSource({
+            rowHasChanged: (r1, r2) => r1.get('id') !== r2.get('id')
+        });
         this.state = {
-            contacts: Contact.getState(),
+            contacts: ds.cloneWithRows(Contact.getState().toArray()),
             position: Global.getState().get('ContactListScrollPosition')
         }
     }
@@ -48,10 +52,10 @@ export default class extends Component {
     componentDidMount() {
         this.unsubscribeContact = Contact.subscribe(() => {
             this.setState({
-                contacts: Contact.getState()
+                contacts: this.state.contacts.cloneWithRows(Contact.getState().toArray())
             });
         });
-        this.refs.list.scrollTo({y: this.state.position, animated: false});
+        //this.refs.list.scrollTo({y: this.state.position, animated: false});
     }
 
     componentWillUnmount() {
@@ -65,70 +69,60 @@ export default class extends Component {
         });
     }
 
-    handleContactListScroll(e) {
-        this.setState({
-            position: e.nativeEvent.contentOffset.y
-        });
+    _rowRenderer(contact, sectionId, rowId) {
+        return (
+            <TouchableHighlight
+                onPress={this.handleContactPress.bind(this, contact.get('id'))}
+                style={RowStyle}>
+                <View style={RowStyle}>
+                    <Image 
+                        style={{
+                            margin: 5,
+                            width: 40,
+                            height: 40
+                        }}
+                        resizeMode={Image.resizeMode.stretch}
+                        source={{uri: contact.get('head')}}/>
+                    <View
+                        style={{
+                            flex: 11,
+                            marginLeft: 10,
+                            flexDirection: 'column'
+                        }}>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                flex: 1
+                            }}>
+                            <Text
+                                style={{
+                                    flex: 5,
+                                    fontSize: 20
+                                }}>{rowId + contact.get('name')}</Text>
+                            <Text
+                                style={{
+                                    alignSelf: 'flex-end',
+                                    width: 50,
+                                    fontSize: 15,
+                                    color: ColorGrey 
+                                }}>{transformDate(contact.get('time'))}</Text>
+                        </View>
+                        <Text 
+                            numberOfLines={1}
+                            style={{
+                                fontSize: 15,
+                                color: ColorGrey,
+                                flex: 1
+                            }}>
+                            {contact.get('content')}
+                        </Text>
+                    </View>
+                </View>
+            </TouchableHighlight>
+        );
     }
 
     render() {
-        let messages = this.state.contacts.toArray().map((contact, i) => {
-            return (
-                <TouchableHighlight
-                    key={i * 2}
-                    onPress={this.handleContactPress.bind(this, contact.get('id'))}
-                    style={RowStyle}>
-                    <View style={RowStyle}>
-                        <Image 
-                            style={{
-                                margin: 5,
-                                width: 40,
-                                height: 40
-                            }}
-                            resizeMode={Image.resizeMode.stretch}
-                            source={{uri: contact.get('head')}}/>
-                        <View
-                            style={{
-                                flex: 11,
-                                marginLeft: 10,
-                                flexDirection: 'column'
-                            }}>
-                            <View
-                                style={{
-                                    flexDirection: 'row',
-                                    flex: 1
-                                }}>
-                                <Text
-                                    style={{
-                                        flex: 5,
-                                        fontSize: 20
-                                    }}>{contact.get('name')}</Text>
-                                <Text
-                                    style={{
-                                        alignSelf: 'flex-end',
-                                        width: 50,
-                                        fontSize: 15,
-                                        color: ColorGrey 
-                                    }}>{transformDate(contact.get('time'))}</Text>
-                            </View>
-                            <Text 
-                                numberOfLines={1}
-                                style={{
-                                    fontSize: 15,
-                                    color: ColorGrey,
-                                    flex: 1
-                                }}>
-                                {contact.get('content')}
-                            </Text>
-                        </View>
-                    </View>
-                </TouchableHighlight>
-            );
-        });
-        const length = messages.length - 1;
-        for (let i = 0; i < length; i++ ) {
-            messages.splice(i * 2 + 1, 0, <Divider key={i * 2 + 1}/>);
-        }
         return (
             <View style={{
                 flexDirection: 'column',
@@ -153,19 +147,12 @@ export default class extends Component {
                             backgroundColor: '#fff'
                         }}/>
                 </View>
-                <ScrollView
-                    ref='list'
-                    style={{
-                        flex: 1,
-                        alignSelf: 'stretch'
-                    }}
-                    automaticallyAdjustContentInsets={true}
-                    onScroll={this.handleContactListScroll.bind(this)}
-                    scrollEventThrottle={100}
-                    >
-                    <View/>
-                    {messages}    
-                </ScrollView> 
+                <ListView
+                    dataSource={this.state.contacts}
+                    style={{flex: 1, alignSelf: 'stretch'}}
+                    renderScrollComponent={props => <RecyclerViewBackedScrollView {...props} style={{flex: 1, alignSelf: 'stretch'}} />}
+                    renderSeparator={(sectionID, rowID) => <Divider key={`${sectionID}-${rowID}`}/>}
+                    renderRow = {this._rowRenderer.bind(this)}/>
             </View>
         );
     }

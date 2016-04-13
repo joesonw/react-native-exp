@@ -15,7 +15,7 @@ import App from './App';
 import NavigationBar from './components/common/NavigationBar';
 import BottomBar from './components/common/BottomBar';
 
-import Route, {configure as configureRoute} from './stores/Route';
+import Route, {configure as configureRoute, getRoutes} from './stores/Route';
 import {Href, Back } from './actions/Route';
 import Dimensions from 'Dimensions';
 
@@ -86,15 +86,24 @@ class ReactNativeExp extends Component {
     constructor(props) {
         super(props);
         const routes = Route.getState().get('routes');
-        this.state = {
-            route: routes.get(routes.size - 1)
+        const Routes = getRoutes().toArray();
+        const shortcutRoutes = {};
+        for (let route of Routes) {
+            if (route.shortcut === true) {
+                const X = route.component;
+                shortcutRoutes[route.name] = <X/>;
+            }
         }
+        this.state = {
+            route: routes.get(routes.size - 1),
+            shortcutRoutes
+        }
+
     }
 
     componentDidMount() {
         this.unsubscribeRoute = Route.subscribe(() => {
             const routes = Route.getState().get('routes');
-            console.log(routes);
             this.setState({
                 route: routes.get(routes.size - 1)
             })
@@ -116,19 +125,47 @@ class ReactNativeExp extends Component {
             height: Dimensions.get('window').height - 60
         };
         let bottom = <View/>;
-        if (this.state.route) {
-            const X = this.state.route.get('component');
-            if (this.state.route.get('shortcut') === true) {
+        const route = this.state.route;
+        const keys = Object.keys(this.state.shortcutRoutes);
+        let index = keys.length;
+        if (route) {
+            const X = route.get('component');
+            if (route.get('shortcut') === true) {
                 style.height -= 60;
                 bottom = <BottomBar/>;
             }
-            body = X;
+            index = keys.indexOf(route.get('name'));
+            if (index === -1) {
+                index = keys.length;
+            }
+            body = X || <View/>;
         }
         return (
             <View>
                 <NavigationBar/>
                 <View style={style}>
-                    {body}
+                    <View
+                        style={{
+                            flexDirection: 'row',
+                            marginLeft: index * -1 * Dimensions.get('window').width,
+                            width: (keys.length + 1) * Dimensions.get('window').width
+                        }}>
+                        {keys.map((key,i) => {
+                            return <View
+                                key={i}
+                                style={[style, {
+                                    width: Dimensions.get('window').width,
+                                }]}>
+                                {this.state.shortcutRoutes[key]}
+                            </View>
+                        })}
+                        <View
+                            style={{
+                                    width: Dimensions.get('window').width
+                            }}>
+                            {body}
+                        </View>
+                    </View>
                 </View>
                 {bottom}
             </View>
@@ -136,4 +173,5 @@ class ReactNativeExp extends Component {
     }
 }
 
-AppRegistry.registerComponent('ReactNativeExp', () => ReactNativeExp);
+//AppRegistry.registerComponent('ReactNativeExp', () => ReactNativeExp);
+AppRegistry.registerComponent('UntitledTodoApp', () => ReactNativeExp);

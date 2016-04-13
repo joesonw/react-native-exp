@@ -150,7 +150,7 @@ export default class extends Component {
             history: []
         };
         if (user) {
-            this.state.history = user.get('history');
+            this.state.history = user.get('history').toArray();
         }
     }
     componentDidMount() {
@@ -169,7 +169,7 @@ export default class extends Component {
                 SetTitle(this.state.user.get('name'));
                 this.setState({
                     user,
-                    history: user.get('history')
+                    history: user.get('history').toArray()
                 })
             }
         })
@@ -186,7 +186,7 @@ export default class extends Component {
         const contact = this.state.user;
         const user = User.getState();
 
-        const messages = this.state.history.toArray().reduce((m, h) => {
+        const messages = this.state.history.reduce((m, h) => {
             if (h.direction === 'from') {
                 return m.concat(<FromMessage key={m.length} head={contact.get('head')} content={h.content}/>);
             } else if (h.direction === 'to') {

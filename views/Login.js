@@ -35,8 +35,8 @@ export default class extends Component {
         super(props);
         this.state = {
             loading: false,
-            username: '',
-            password: ''
+            username: 'user0',
+            password: '123456'
         }
     }
 

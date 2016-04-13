@@ -1,0 +1,59 @@
+{ 
+    "log": ["*"], 
+	"interface":"127.0.0.1:4984",
+  	"adminInterface":"localhost:4985",
+    "databases": { 
+        "chat": { 
+            "users": { 
+                "moderator": {
+                    "password": "pass", 
+                    "admin_channels": ["*"]
+                },
+				"GUEST": {
+					"disabled": true
+				}
+			},
+			"server": "http://Administrator:123456@127.0.0.1:8091",
+			"username": "chat",
+			"password": "123456",
+			"bucket": "chat",
+			"import_docs": true,
+            "sync": `function(doc, oldDoc) {
+				channel(doc.channels);
+				access(doc.users, doc.channels);
+				if (!oldDoc) { // start a chat
+					doc.channels = doc.users;
+					doc.message = [];
+				} else { // change doc
+					if (oldDoc.users.length != doc.users.length) {
+						throw({forbidden: "cannot modify users."});
+						for (var i = 0; i < oldDoc.users.length; i++) {
+							if (doc.users.indexOf(oldDoc.users[i]) == -1) {
+								throw({forbidden: "cannot modify users"});
+							}
+						}
+					}
+					requireUser(doc.users);
+				}
+			}` 
+		},
+		 "user": { 
+            "users": { 
+                "moderator": {
+                    "password": "pass", 
+                    "admin_channels": ["*"]
+                },
+				"GUEST": {
+					"disabled": true
+				}
+			},
+			"server": "http://Administrator:123456@127.0.0.1:8091",
+			"username": "user",
+			"password": "123456",
+			"bucket": "user",
+			"import_docs": true,
+            "sync": `function(doc, oldDoc) {
+			}` 
+		}
+	}
+}

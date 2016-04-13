@@ -2,6 +2,8 @@ import {createStore } from 'redux';
 import {Map, List } from 'immutable';
 import {Async }  from '../actions/User';
 import {Clear } from '../actions/Route';
+import config from '../config';
+import database from '../database'
 
 const defaultState = Map({
 });
@@ -9,13 +11,40 @@ const defaultState = Map({
 const UserStore = createStore((state = defaultState, action) => {
     switch (action.type) {
         case 'Login':
-            setTimeout(() => {
-                Async({
-                    username: 'JoesonW',
-                    version: '0.0.1',
-                    head: 'https://cdn.tutsplus.com/net/uploads/2013/08/github-collab-retina-preview.gif'
-                });
-            }, 500);
+            let cookie;
+            fetch(config.authUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: action.username,
+                    password: action.password
+                })
+            }).then(res => {
+                if (res.status === 200) {
+                    return res.json();
+                }
+            }).then(res => {
+                if (res) {
+                    cookie = res;
+                    return database.createDatabase();
+                }
+            }).then(res => {
+                if (res) {
+                    const chatRemote = {
+                        headers: {
+                            Cookie: cookie.chat.cookie_name + '=' + cookie.chat.session_id
+                        },
+                        url: config.chatUrl
+                    };
+                    database.replicate('chat', chatRemote, true);
+                    database.replicate(chatRemote, 'chat', true);
+                    Async({
+                        username: action.username
+                    });
+                }
+            })
             return state;
         case 'ChangePassword':
             setTimeout(() => {
@@ -26,9 +55,7 @@ const UserStore = createStore((state = defaultState, action) => {
             return defaultState;
         case 'Async':
             return state
-                .set('username', action.data.username)
-                .set('version', action.data.version)
-                .set('head', action.data.head)
+                .set('username', action.data.username);
         default:
             return state;
     }
