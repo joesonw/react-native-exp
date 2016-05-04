@@ -14,6 +14,7 @@ import transformDate from '../utils/transformDate';
 import Dimensions from 'Dimensions'
 import {Href } from '../actions/Route';
 import {Set } from '../actions/Global';
+import {autobind } from 'core-decorators';
 import Global from '../stores/Global';
 
 const RowStyle = {
@@ -45,7 +46,8 @@ export default class extends Component {
         });
         this.state = {
             contacts: ds.cloneWithRows(Contact.getState().toArray()),
-            position: Global.getState().get('ContactListScrollPosition')
+            position: Global.getState().get('ContactListScrollPosition'),
+            searchText: ''
         }
     }
 
@@ -98,7 +100,7 @@ export default class extends Component {
                                 style={{
                                     flex: 5,
                                     fontSize: 20
-                                }}>{rowId + contact.get('name')}</Text>
+                                }}>{contact.get('name')}</Text>
                             <Text
                                 style={{
                                     alignSelf: 'flex-end',
@@ -122,6 +124,16 @@ export default class extends Component {
         );
     }
 
+    filter(searchText) {
+        searchText = searchText.toLowerCase();
+        const contacts = this.state.contacts.cloneWithRows(_.filter(Contact.getState().toArray(), d => {
+            return d.get('name').indexOf(searchText) !== -1;
+        }));
+        this.setState({
+            searchText,
+            contacts
+        });
+    }
     render() {
         return (
             <View style={{
@@ -138,6 +150,8 @@ export default class extends Component {
                 }]}>
                     <TextInput
                         placeholder='搜索'
+                        value={this.state.searchText}
+                        onChangeText={this.filter.bind(this)}
                         style={{
                             fontSize: 20,
                             height: 30,

@@ -36,15 +36,12 @@ router.post('/', function* (next) {
         this.status = 200;
         try {
             yield request.post('http://localhost:4985/chat/_user/', {name: username});
-            yield request.post('http://localhost:4985/user/_user/', {name: username});
         } catch (e) {
             if (e.status !== 409) throw e;
         }
         var res = {};
-        res.chat = yield request.post('http://localhost:4985/chat/_session', {name: username});
-        res.user = yield request.post('http://localhost:4985/user/_session', {name: username});
-        res.chat = res.chat.data;
-        res.user = res.user.data;
+        res = yield request.post('http://localhost:4985/chat/_session', {name: username});
+        res = res.data;
         this.body = res;
     }
     yield next;

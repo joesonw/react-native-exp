@@ -10,6 +10,7 @@ import React, {
 import _ from 'lodash';
 import Dimensions from 'Dimensions';
 import {SetTitle } from '../actions/Route';
+import {Send } from '../actions/Contact';
 import Contact from '../stores/Contact';
 import User from '../stores/User';
 
@@ -146,11 +147,13 @@ export default class extends Component {
         }
         this.state = {
             id: props.id,
+            input: '',
             user,
             history: []
         };
         if (user) {
-            this.state.history = user.get('history').toArray();
+            this.state.history = user.get('history');
+                console.log('rendering', user.get('history').length)
         }
     }
     componentDidMount() {
@@ -166,10 +169,11 @@ export default class extends Component {
                 }
             }
             if (user) {
+                console.log('rendering',user.get('history').length)
                 SetTitle(this.state.user.get('name'));
                 this.setState({
                     user,
-                    history: user.get('history').toArray()
+                    history: user.get('history')
                 })
             }
         })
@@ -214,6 +218,8 @@ export default class extends Component {
                         flexDirection: 'row'
                     }}>
                     <TextInput
+                        onChangeText={input => this.setState({input})}
+                        value={this.state.input}
                         style={{
                             flex: 12,
                             height:40,
@@ -225,6 +231,10 @@ export default class extends Component {
                             padding: 5
                         }}/>
                     <TouchableHighlight 
+                        onPress={e => {
+                            Send(contact.toJSON() ,this.state.input);
+                            this.setState({input: ''})
+                        }}
                         style={{
                             borderRadius: 2,
                             borderWidth: 1,

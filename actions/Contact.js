@@ -8,3 +8,9 @@ export const Async = (contacts) => Contact.dispatch({
     type: 'Async',
     contacts
 });
+
+export const Send = (contact, message) => Contact.dispatch({
+    type: 'Send',
+    contact,
+    message
+})

@@ -90,6 +90,7 @@ export default class extends Component {
                     <TextInput
                         placeholder='用户名'
                         onChangeText={(username) => this.setState({username})}
+                        value={this.state.username}
                         style={{
                             fontSize: 20,
                             marginLeft: 50,
@@ -106,6 +107,7 @@ export default class extends Component {
                         }}>密码</Text>
                     <TextInput
                         secureTextEntry={true}
+                        value={this.state.password}
                         placeholder='请填写密码'
                         onChangeText={(password) => this.setState({password})}
                         style={{

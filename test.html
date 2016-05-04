@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+    </head>
+    <body>
+        <script>
+            function poll() {
+                console.log('polling')
+                $.ajax({
+                    url: 'http://localhost:4985/chat/_changes?since=25&feed=continuous',
+                    success: function(data) {
+                        console.log(data)
+                    },
+                    complete:poll,
+                    timeout: 30000
+                });
+            }
+            poll();
+        </script>
+    </body>
+</html>

@@ -173,5 +173,5 @@ class ReactNativeExp extends Component {
     }
 }
 
-//AppRegistry.registerComponent('ReactNativeExp', () => ReactNativeExp);
-AppRegistry.registerComponent('UntitledTodoApp', () => ReactNativeExp);
+AppRegistry.registerComponent('ReactNativeExp', () => ReactNativeExp);
+//AppRegistry.registerComponent('UntitledTodoApp', () => ReactNativeExp);
